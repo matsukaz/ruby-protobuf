@@ -228,7 +228,7 @@ module Protobuf
           elsif type < Message
             MessageField
           else
-            raise TypeError, type.inspect
+            raise TypeError, "Failed to setup. {message_class=#{@message_class}, type=#{type.inspect}}"
           end
         field_class.new(@message_class, @rule, type, @name, @tag, @options)
       end
@@ -276,7 +276,7 @@ module Protobuf
       end
 
       def replace(val)
-        raise TypeError unless val.is_a?(Array)
+        raise TypeError, "Value is not an array. {field=#{@field}, value='#{val.inspect}'}" unless val.is_a?(Array)
         val = val.map {|v| normalize(v)}
         super(val)
       end
@@ -288,7 +288,7 @@ module Protobuf
       private
 
       def normalize(val)
-        raise TypeError unless @field.acceptable?(val)
+        raise TypeError, "Value is not acceptable. {field=#{@field}, value='#{val.inspect}'}" unless @field.acceptable?(val)
         if @field.is_a?(MessageField) && val.is_a?(Hash)
           @field.type.new(val)
         else
@@ -309,7 +309,7 @@ module Protobuf
       end
 
       def acceptable?(val)
-        raise TypeError unless val.is_a?(String)
+        raise TypeError, "Value is not a string. {message_class=#{@message_class}, type=#{@type}, name=#{@name}, value='#{val.inspect}'}" unless val.is_a?(String)
         true
       end
 
@@ -384,7 +384,7 @@ module Protobuf
       end
 
       def acceptable?(val)
-        raise TypeError, val.class.name unless val.is_a?(Integer)
+        raise TypeError, "Value is not an integer. {message_class=#{@message_class}, type=#{@type}, name=#{@name}, value='#{val.inspect}'}" unless val.is_a?(Integer)
         raise RangeError if val < min || max < val
         true
       end
@@ -470,7 +470,7 @@ module Protobuf
       end
 
       def acceptable?(val)
-        raise TypeError, val.class.name unless val.is_a?(Numeric)
+        raise TypeError, "Value is not a numeric. {message_class=#{@message_class}, type=#{@type}, name=#{@name}, value='#{val.inspect}'}" unless val.is_a?(Numeric)
         raise RangeError if val < min || max < val
         true
       end
@@ -562,7 +562,7 @@ module Protobuf
       end
 
       def acceptable?(val)
-        raise TypeError unless [true, false].include?(val)
+        raise TypeError, "Value is not a boolean. {message_class=#{@message_class}, type=#{@type}, name=#{@name}, value='#{val.inspect}'}" unless [true, false].include?(val)
         true
       end
 
@@ -582,7 +582,7 @@ module Protobuf
       end
 
       def acceptable?(val)
-        raise TypeError unless val.is_a?(type) || val.is_a?(Hash)
+        raise TypeError, "Value is not a hash. {message_class=#{@message_class}, type=#{@type}, name=#{@name}, value='#{val.inspect}'}" unless val.is_a?(type) || val.is_a?(Hash)
         true
       end
 
@@ -628,11 +628,11 @@ module Protobuf
       def acceptable?(val)
         case val
         when Symbol, String
-          raise TypeError unless @type.const_defined?(val)
+          raise TypeError, "Value is not const defined. {message_class=#{@message_class}, type=#{@type}, name=#{@name}, value='#{val.inspect}'}" unless @type.const_defined?(val)
         when EnumValue
-          raise TypeError if val.parent_class != @type
+          raise TypeError, "Value parent class does not match with #{@type}. {message_class=#{@message_class}, type=#{@type}, name=#{@name}, value='#{val.inspect}'}" if val.parent_class != @type
         else
-          raise TypeError unless @type.valid_tag?(val)
+          raise TypeError, "Value is not valid tag. {message_class=#{@message_class}, type=#{@type}, name=#{@name}, value='#{val.inspect}'}" unless @type.valid_tag?(val)
         end
         true
       end
@@ -665,10 +665,10 @@ module Protobuf
                 when Integer
                   field.type.const_get(field.type.name_by_value(val)) rescue nil
                 when EnumValue
-                  raise TypeError, "Invalid value: #{val.inspect}" if val.parent_class != field.type
+                  raise TypeError, "Value parent class does not match with #{field.type}. {message_class=#{@message_class}, type=#{@type}, name=#{@name}, value='#{val.inspect}'}" if val.parent_class != field.type
                   val
                 end
-              raise TypeError, "Invalid value: #{val.inspect}" unless enum_value
+              raise TypeError, "Value is invalid. {message_class=#{@message_class}, type=#{@type}, name=#{@name}, value='#{val.inspect}'}" unless enum_value
 
               @values[field.name] = enum_value
             end
